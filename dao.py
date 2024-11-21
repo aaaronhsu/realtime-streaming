@@ -1,4 +1,4 @@
-from flask import send_file
+from flask import send_file, jsonify
 import os
 import requests
 from datetime import datetime, timedelta
@@ -20,8 +20,10 @@ def request_file_from_server(filename, server="http://104.198.236.232:8080/hls")
                 file.write(chunk)
 
         cache_times[filename] = datetime.now()
+        return True
     except Exception as e:
         print(f"Error caching file: {e}")
+        return False
 
 def is_file_stale(filename):
     if filename not in cache_times:
@@ -46,7 +48,8 @@ def is_file_stale(filename):
 
 def fetch_file(filename):
     if is_file_stale(filename):
-        request_file_from_server(filename)
+        if not request_file_from_server(filename):
+            return jsonify({"error": "Unable to fetch file"}, 500)
     else:
         logging.debug(f"Fetching {filename} from cache")
     return send_file(f'cache/{filename}')

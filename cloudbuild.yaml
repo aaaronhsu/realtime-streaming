@@ -1,0 +1,12 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "--platform=linux/amd64",
+        "-t",
+        "gcr.io/even-cirrus-440703-d8/edge-server:v1",
+        ".",
+      ]
+images:
+  - "gcr.io/even-cirrus-440703-d8/edge-server:v1"
