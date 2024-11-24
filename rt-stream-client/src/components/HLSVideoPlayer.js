@@ -1,15 +1,16 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react';
 import muxjs from 'mux.js';
+import config from '@/config.json'
 
 class LiveHLSManager {
-  constructor(videoElement, manifestUrl, onStats) {
+  constructor(videoElement, streamKey, onStats) {
     this.mediaSource = new MediaSource();
     this.sourceBuffer = null;
     this.downloadedSegments = new Set();
     this.currentSegments = [];
-    this.manifestUrl = manifestUrl;
-    this.baseUrl = manifestUrl.split('/').slice(0, -1).join('/') + '/';
+    this.baseUrl = config.baseUrl;
+    this.manifestUrl = this.baseUrl + streamKey + '.m3u8';
     this.isRunning = false;
     this.videoElement = videoElement;
     this.updateInterval = null;
@@ -245,7 +246,7 @@ class LiveHLSManager {
   }
 }
 
-const HLSVideoPlayer = ({ manifestUrl }) => {
+const HLSVideoPlayer = ({ streamKey }) => {
   const videoRef = useRef(null);
   const hlsManagerRef = useRef(null);
   const [stats, setStats] = useState({
@@ -258,7 +259,7 @@ const HLSVideoPlayer = ({ manifestUrl }) => {
 
     hlsManagerRef.current = new LiveHLSManager(
       videoRef.current,
-      manifestUrl,
+      streamKey,
       (stats) => setStats(stats)
     );
 
@@ -267,7 +268,7 @@ const HLSVideoPlayer = ({ manifestUrl }) => {
         hlsManagerRef.current.stop();
       }
     };
-  }, [manifestUrl]);
+  }, [streamKey]);
 
   return (
     <div className="relative w-full max-w-3xl mx-auto">
