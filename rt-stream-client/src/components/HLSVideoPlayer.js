@@ -80,11 +80,20 @@ class LiveHLSManager {
     });
   }
 
+  async fetchHLSContent(originalUrl) {
+    const encodedUrl = encodeURIComponent(originalUrl);
+    const response = await fetch(`/api/hls?url=${encodedUrl}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch HLS content');
+    }
+    
+    return response;
+  };
+
   async downloadManifest() {
     try {
-      const response = await fetch(this.manifestUrl, {
-        method: 'GET'
-      });
+      const response = await this.fetchHLSContent(this.manifestUrl);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return await response.text();
     } catch (error) {
@@ -95,9 +104,7 @@ class LiveHLSManager {
   async downloadSegment(segmentUri) {
     const url = segmentUri.startsWith('http') ? segmentUri : `${this.baseUrl}${segmentUri}`;
     try {
-      const response = await fetch(url, {
-        method: 'GET'
-      });
+      const response = await this.fetchHLSContent(url);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const arrayBuffer = await response.arrayBuffer();
@@ -175,7 +182,6 @@ class LiveHLSManager {
         this.downloadedSegments.add(segmentUri);
         
         if (!this.videoElement.playing) {
-            // this.videoElement.muted = true;
             await this.videoElement.play();
         }
       } else {
@@ -209,7 +215,7 @@ class LiveHLSManager {
         // Schedule next update
         this.updateInterval = window.setTimeout(updateManifest, (targetDuration / 2) * 1000);
       } catch (error) {
-        this.onError(`Streaming error: ${error}`);
+        this.log(`Streaming error: ${error}`);
         this.stop();
       }
     };
